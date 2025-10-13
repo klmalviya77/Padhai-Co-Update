@@ -41,14 +41,14 @@ export const Navbar = () => {
             <Home className="h-4 w-4" />
             Home
           </Link>
-          <Link to="/notes" className="hidden md:flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors">
+          <Link to="/notes" className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors">
             <BookOpen className="h-4 w-4" />
-            Browse Notes
+            <span className="hidden md:inline">Browse Notes</span>
           </Link>
           {user && (
-            <Link to="/upload" className="hidden md:flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors">
+            <Link to="/upload" className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors">
               <Upload className="h-4 w-4" />
-              Upload
+              <span className="hidden md:inline">Upload</span>
             </Link>
           )}
 

@@ -8,8 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { ThumbsUp, ThumbsDown, Flag, Award, User, Calendar, Loader2, ArrowLeft } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Flag, Award, User, Calendar, Loader2, ArrowLeft, Download } from "lucide-react";
 import { toast } from "sonner";
+import { PDFPreview } from "@/components/PDFPreview";
 
 interface NoteData {
   id: string;
@@ -37,6 +38,8 @@ const NoteDetail = () => {
   const [userVote, setUserVote] = useState<string | null>(null);
   const [reportReason, setReportReason] = useState("");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     fetchNoteAndUserData();
@@ -76,6 +79,15 @@ const NoteDetail = () => {
         .maybeSingle();
 
       setUserVote(voteData?.vote_type || null);
+
+      // Fetch user profile for Gyan Points
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("gyan_points")
+        .eq("id", session.user.id)
+        .single();
+      
+      setUserProfile(profile);
     }
 
     setLoading(false);
@@ -88,6 +100,9 @@ const NoteDetail = () => {
       return;
     }
 
+    let upvoteDelta = 0;
+    let downvoteDelta = 0;
+
     if (userVote === voteType) {
       // Remove vote
       const { error } = await supabase
@@ -98,8 +113,9 @@ const NoteDetail = () => {
 
       if (!error) {
         setUserVote(null);
+        if (voteType === "upvote") upvoteDelta = -1;
+        else downvoteDelta = -1;
         toast.success("Vote removed");
-        fetchNoteAndUserData();
       }
     } else {
       // Add or update vote
@@ -112,12 +128,44 @@ const NoteDetail = () => {
         });
 
       if (!error) {
+        if (userVote) {
+          // Changing vote
+          if (voteType === "upvote") {
+            upvoteDelta = 1;
+            downvoteDelta = -1;
+          } else {
+            upvoteDelta = -1;
+            downvoteDelta = 1;
+          }
+        } else {
+          // New vote
+          if (voteType === "upvote") upvoteDelta = 1;
+          else downvoteDelta = 1;
+        }
         setUserVote(voteType);
         toast.success(`Note ${voteType}d!`);
-        fetchNoteAndUserData();
       } else {
         toast.error("Failed to vote");
+        return;
       }
+    }
+
+    // Update note counts
+    if (note && (upvoteDelta !== 0 || downvoteDelta !== 0)) {
+      const newUpvotes = note.upvotes + upvoteDelta;
+      const newDownvotes = note.downvotes + downvoteDelta;
+      const newTrustScore = newUpvotes - newDownvotes;
+
+      await supabase
+        .from("notes")
+        .update({
+          upvotes: newUpvotes,
+          downvotes: newDownvotes,
+          trust_score: newTrustScore,
+        })
+        .eq("id", noteId);
+
+      fetchNoteAndUserData();
     }
   };
 
@@ -148,6 +196,67 @@ const NoteDetail = () => {
     } else {
       toast.success("Report submitted successfully");
       setReportReason("");
+    }
+  };
+
+  const calculateDownloadCost = () => {
+    if (!note) return 50;
+    const trustScore = note.trust_score || 0;
+    
+    // Base cost is 50 points, increases by 5 points for every 10 trust score points
+    const additionalCost = Math.floor(trustScore / 10) * 5;
+    return 50 + additionalCost;
+  };
+
+  const handleDownload = async () => {
+    if (!currentUserId) {
+      toast.error("Please login to download");
+      navigate("/auth");
+      return;
+    }
+
+    if (!userProfile) {
+      toast.error("Unable to fetch user profile");
+      return;
+    }
+
+    const downloadCost = calculateDownloadCost();
+    
+    if (userProfile.gyan_points < downloadCost) {
+      toast.error(`You need ${downloadCost} Gyan Points to download this file. You have ${userProfile.gyan_points} points.`);
+      return;
+    }
+
+    setDownloading(true);
+
+    try {
+      // Deduct points
+      const newPoints = userProfile.gyan_points - downloadCost;
+      await supabase
+        .from("profiles")
+        .update({ gyan_points: newPoints })
+        .eq("id", currentUserId);
+
+      // Download the file
+      const link = document.createElement("a");
+      link.href = note!.file_url;
+      const fileName = note!.file_type.includes("pdf") 
+        ? `${note!.topic}.pdf` 
+        : `${note!.topic}.${note!.file_type.split("/")[1]}`;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success(`File downloaded! ${downloadCost} Gyan Points deducted.`);
+      
+      // Update local state
+      setUserProfile({ ...userProfile, gyan_points: newPoints });
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error("Failed to download file");
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -210,21 +319,32 @@ const NoteDetail = () => {
               </CardHeader>
               <CardContent>
                 {/* File Preview */}
-                <div className="bg-muted rounded-lg p-8 mb-6 min-h-[400px] flex items-center justify-center">
-                  {note.file_type.includes("pdf") ? (
-                    <iframe
-                      src={note.file_url}
-                      className="w-full h-[600px] rounded"
-                      title={note.topic}
-                    />
-                  ) : (
-                    <img
-                      src={note.file_url}
-                      alt={note.topic}
-                      className="max-w-full h-auto rounded"
-                    />
-                  )}
-                </div>
+                {note.file_type.includes("pdf") ? (
+                  <PDFPreview
+                    fileUrl={note.file_url}
+                    onDownload={handleDownload}
+                    canDownload={!downloading && userProfile && userProfile.gyan_points >= calculateDownloadCost()}
+                    downloadCost={calculateDownloadCost()}
+                  />
+                ) : (
+                  <div className="space-y-4">
+                    <div className="bg-muted rounded-lg p-8 mb-6 min-h-[400px] flex items-center justify-center">
+                      <img
+                        src={note.file_url}
+                        alt={note.topic}
+                        className="max-w-full h-auto rounded"
+                      />
+                    </div>
+                    <Button 
+                      onClick={handleDownload} 
+                      disabled={downloading || !userProfile || userProfile.gyan_points < calculateDownloadCost()} 
+                      className="w-full"
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Download Image ({calculateDownloadCost()} points)
+                    </Button>
+                  </div>
+                )}
 
                 {/* Action Buttons */}
                 <div className="flex gap-4 justify-between items-center">

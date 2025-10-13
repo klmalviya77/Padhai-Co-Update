@@ -4,6 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { FileText, ThumbsUp, Award, Loader2 } from "lucide-react";
@@ -28,6 +29,7 @@ const Notes = () => {
   const [loading, setLoading] = useState(true);
   const [selectedSemester, setSelectedSemester] = useState<string>("all");
   const [selectedSubject, setSelectedSubject] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -60,7 +62,14 @@ const Notes = () => {
   const filteredNotes = notes.filter((note) => {
     const semesterMatch = selectedSemester === "all" || note.semester.toString() === selectedSemester;
     const subjectMatch = selectedSubject === "all" || note.subject === selectedSubject;
-    return semesterMatch && subjectMatch;
+    
+    const searchMatch = searchQuery === "" || 
+      note.topic.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      note.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      note.profiles.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      note.semester.toString().includes(searchQuery);
+    
+    return semesterMatch && subjectMatch && searchMatch;
   });
 
   const subjects = Array.from(new Set(notes.map((note) => note.subject)));
@@ -87,6 +96,17 @@ const Notes = () => {
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Browse Study Notes</h1>
           <p className="text-muted-foreground">Discover quality study materials shared by students</p>
+        </div>
+
+        {/* Search Bar */}
+        <div className="mb-6">
+          <Input
+            type="text"
+            placeholder="Search by semester, subject, username, or topic..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full"
+          />
         </div>
 
         {/* Filters */}
