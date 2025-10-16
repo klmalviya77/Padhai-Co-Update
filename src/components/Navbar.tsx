@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
-import { BookOpen, Upload, Home, User as UserIcon, LogOut, Info, Shield, FileText } from "lucide-react";
+import { BookOpen, Upload, Home, User as UserIcon, LogOut, Info, Shield, FileText, MessageSquare, ListChecks } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import logo from "@/assets/padhai-logo.png";
@@ -86,6 +86,14 @@ export const Navbar = () => {
                 <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                   <UserIcon className="mr-2 h-4 w-4" />
                   Dashboard
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/request-notes")}>
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  Request Notes
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/my-requests")}>
+                  <ListChecks className="mr-2 h-4 w-4" />
+                  My Requests
                 </DropdownMenuItem>
                 {isAdmin && (
                   <DropdownMenuItem onClick={() => navigate("/admin")}>

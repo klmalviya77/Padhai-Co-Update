@@ -14,6 +14,129 @@ export type Database = {
   }
   public: {
     Tables: {
+      fulfillment_votes: {
+        Row: {
+          created_at: string | null
+          fulfillment_id: string
+          id: string
+          user_id: string
+          vote_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          fulfillment_id: string
+          id?: string
+          user_id: string
+          vote_type: string
+        }
+        Update: {
+          created_at?: string | null
+          fulfillment_id?: string
+          id?: string
+          user_id?: string
+          vote_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fulfillment_votes_fulfillment_id_fkey"
+            columns: ["fulfillment_id"]
+            isOneToOne: false
+            referencedRelation: "request_fulfillments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fulfillment_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fulfillment_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_leaderboard"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      note_requests: {
+        Row: {
+          category: Database["public"]["Enums"]["education_category"]
+          created_at: string | null
+          description: string | null
+          expires_at: string | null
+          fulfilled_at: string | null
+          fulfilled_by: string | null
+          id: string
+          level: string
+          points_offered: number
+          requester_id: string
+          status: string
+          subject: string
+          topic: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["education_category"]
+          created_at?: string | null
+          description?: string | null
+          expires_at?: string | null
+          fulfilled_at?: string | null
+          fulfilled_by?: string | null
+          id?: string
+          level: string
+          points_offered: number
+          requester_id: string
+          status?: string
+          subject: string
+          topic: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["education_category"]
+          created_at?: string | null
+          description?: string | null
+          expires_at?: string | null
+          fulfilled_at?: string | null
+          fulfilled_by?: string | null
+          id?: string
+          level?: string
+          points_offered?: number
+          requester_id?: string
+          status?: string
+          subject?: string
+          topic?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "note_requests_fulfilled_by_fkey"
+            columns: ["fulfilled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "note_requests_fulfilled_by_fkey"
+            columns: ["fulfilled_by"]
+            isOneToOne: false
+            referencedRelation: "user_leaderboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "note_requests_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "note_requests_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "user_leaderboard"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notes: {
         Row: {
           category: Database["public"]["Enums"]["education_category"]
@@ -171,6 +294,79 @@ export type Database = {
           },
         ]
       }
+      request_fulfillments: {
+        Row: {
+          auto_review_at: string | null
+          created_at: string | null
+          downvotes: number | null
+          file_size: number
+          file_type: string
+          file_url: string
+          id: string
+          request_id: string
+          reviewed_at: string | null
+          status: string
+          uploader_id: string
+          upvotes: number | null
+          validation_errors: string[] | null
+          validation_passed: boolean | null
+        }
+        Insert: {
+          auto_review_at?: string | null
+          created_at?: string | null
+          downvotes?: number | null
+          file_size: number
+          file_type: string
+          file_url: string
+          id?: string
+          request_id: string
+          reviewed_at?: string | null
+          status?: string
+          uploader_id: string
+          upvotes?: number | null
+          validation_errors?: string[] | null
+          validation_passed?: boolean | null
+        }
+        Update: {
+          auto_review_at?: string | null
+          created_at?: string | null
+          downvotes?: number | null
+          file_size?: number
+          file_type?: string
+          file_url?: string
+          id?: string
+          request_id?: string
+          reviewed_at?: string | null
+          status?: string
+          uploader_id?: string
+          upvotes?: number | null
+          validation_errors?: string[] | null
+          validation_passed?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "request_fulfillments_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "note_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "request_fulfillments_uploader_id_fkey"
+            columns: ["uploader_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "request_fulfillments_uploader_id_fkey"
+            columns: ["uploader_id"]
+            isOneToOne: false
+            referencedRelation: "user_leaderboard"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -270,6 +466,10 @@ export type Database = {
         Args: { _user_id: string }
         Returns: undefined
       }
+      check_community_validation: {
+        Args: { _fulfillment_id: string }
+        Returns: undefined
+      }
       deduct_download_points: {
         Args: { _cost: number; _user_id: string }
         Returns: boolean
@@ -280,6 +480,18 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      process_fulfillment_approval: {
+        Args: {
+          _approved: boolean
+          _fulfillment_id: string
+          _reviewer_id: string
+        }
+        Returns: undefined
+      }
+      validate_fulfillment: {
+        Args: { _fulfillment_id: string }
+        Returns: undefined
       }
     }
     Enums: {
