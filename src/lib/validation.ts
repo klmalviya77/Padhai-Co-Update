@@ -65,7 +65,27 @@ export const reportSchema = z.object({
     .max(1000, "Reason must be less than 1000 characters")
 });
 
+// Request note creation validation
+export const requestNoteSchema = z.object({
+  category: z.enum(['programming', 'school', 'university']),
+  level: z.string().trim().min(1).max(50),
+  subject: z.string().trim().min(1, "Subject is required").max(100),
+  topic: z.string().trim().min(1, "Topic is required").max(200),
+  description: z.string().trim().min(10, "Description must be at least 10 characters").max(1000),
+  pointsOffered: z.number().int().min(5, "Points must be at least 5").max(100, "Points must be at most 100")
+});
+
+// Fulfillment upload validation
+export const fulfillmentUploadSchema = z.object({
+  file: z.instanceof(File)
+    .refine(f => f.size >= 200 * 1024, "File must be at least 200KB")
+    .refine(f => f.size <= 10 * 1024 * 1024, "File must be less than 10MB")
+    .refine(f => f.type === 'application/pdf', "Only PDF files are allowed")
+});
+
 // Types for validated data
 export type UploadFormData = z.infer<typeof uploadSchema>;
 export type AuthFormData = z.infer<typeof authSchema>;
 export type ReportFormData = z.infer<typeof reportSchema>;
+export type RequestNoteFormData = z.infer<typeof requestNoteSchema>;
+export type FulfillmentUploadFormData = z.infer<typeof fulfillmentUploadSchema>;

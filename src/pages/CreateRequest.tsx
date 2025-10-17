@@ -26,20 +26,23 @@ export default function CreateRequest() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!category || !level || !subject || !topic || !pointsOffered) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    // Validate using schema
+    const { requestNoteSchema } = await import("@/lib/validation");
     const points = parseInt(pointsOffered);
-    if (isNaN(points) || points < 5) {
+    
+    const validation = requestNoteSchema.safeParse({
+      category,
+      level: level.trim(),
+      subject: subject.trim(),
+      topic: topic.trim(),
+      description: description.trim(),
+      pointsOffered: points
+    });
+
+    if (!validation.success) {
       toast({
-        title: "Error",
-        description: "Points offered must be at least 5",
+        title: "Validation Error",
+        description: validation.error.errors[0].message,
         variant: "destructive",
       });
       return;
@@ -70,17 +73,17 @@ export default function CreateRequest() {
 
       if (deductError) throw deductError;
 
-      // Create request
+      // Create request with validated data
       const { error: requestError } = await supabase
         .from("note_requests")
         .insert([{
           requester_id: user.id,
-          category: category as EducationCategory,
-          level,
-          subject,
-          topic,
-          description,
-          points_offered: points,
+          category: validation.data.category,
+          level: validation.data.level,
+          subject: validation.data.subject,
+          topic: validation.data.topic,
+          description: validation.data.description,
+          points_offered: validation.data.pointsOffered,
         }]);
 
       if (requestError) throw requestError;

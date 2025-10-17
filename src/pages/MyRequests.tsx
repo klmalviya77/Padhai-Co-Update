@@ -116,10 +116,11 @@ export default function MyRequests() {
 
       toast({
         title: "Success",
-        description: approved ? "Fulfillment approved!" : "Fulfillment rejected",
+        description: approved ? "Fulfillment approved! Request is now closed." : "Fulfillment rejected. Request remains open.",
       });
 
-      fetchData();
+      // Refresh data to show updated status
+      await fetchData();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -312,15 +313,29 @@ export default function MyRequests() {
       <Dialog open={!!previewUrl} onOpenChange={() => setPreviewUrl(null)}>
         <DialogContent className="max-w-4xl h-[80vh]">
           <DialogHeader>
-            <DialogTitle>File Preview</DialogTitle>
-            <DialogDescription>Review the uploaded file</DialogDescription>
+            <DialogTitle>PDF Preview</DialogTitle>
+            <DialogDescription>Review the uploaded PDF file</DialogDescription>
           </DialogHeader>
           {previewUrl && (
-            <iframe
-              src={previewUrl}
-              className="w-full h-full rounded-lg"
-              title="File Preview"
-            />
+            <div className="w-full h-full flex items-center justify-center">
+              <object
+                data={previewUrl}
+                type="application/pdf"
+                className="w-full h-full rounded-lg"
+              >
+                <p className="text-center">
+                  PDF preview not available.{" "}
+                  <a 
+                    href={previewUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-primary underline"
+                  >
+                    Download PDF
+                  </a>
+                </p>
+              </object>
+            </div>
           )}
         </DialogContent>
       </Dialog>

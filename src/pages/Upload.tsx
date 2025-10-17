@@ -31,10 +31,12 @@ const Upload = () => {
       if (!fileValidation.success) {
         toast.error(fileValidation.error.errors[0].message);
         e.target.value = "";
+        setFile(null);
         return;
       }
 
       setFile(selectedFile);
+      toast.success(`File selected: ${selectedFile.name}`);
     }
   };
 

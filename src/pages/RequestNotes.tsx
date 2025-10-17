@@ -69,17 +69,35 @@ export default function RequestNotes() {
   const handleUploadFulfillment = async () => {
     if (!uploadFile || !selectedRequest) return;
 
+    // Validate file using schema
+    const validation = await import("@/lib/validation").then(m => 
+      m.fulfillmentUploadSchema.safeParse({ file: uploadFile })
+    );
+
+    if (!validation.success) {
+      toast({
+        title: "Validation Error",
+        description: validation.error.errors[0].message,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setUploading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Upload file to storage
+      // Upload file to storage with proper content type
       const fileExt = uploadFile.name.split(".").pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const fileName = `fulfillments/${user.id}/${Date.now()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage
         .from("notes")
-        .upload(fileName, uploadFile);
+        .upload(fileName, uploadFile, {
+          contentType: 'application/pdf',
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) throw uploadError;
 
@@ -94,7 +112,7 @@ export default function RequestNotes() {
           request_id: selectedRequest.id,
           uploader_id: user.id,
           file_url: publicUrl,
-          file_type: uploadFile.type,
+          file_type: 'application/pdf',
           file_size: uploadFile.size,
         });
 
@@ -102,12 +120,13 @@ export default function RequestNotes() {
 
       toast({
         title: "Success",
-        description: "Your file has been submitted for validation!",
+        description: "Your PDF has been submitted for validation!",
       });
 
       setUploadDialogOpen(false);
       setUploadFile(null);
       setSelectedRequest(null);
+      await fetchRequests(); // Refresh the list
     } catch (error: any) {
       toast({
         title: "Error",
