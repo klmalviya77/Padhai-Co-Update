@@ -33,15 +33,19 @@ export const uploadSchema = z.object({
     )
 });
 
-// Auth form validation
+// Auth form validation with strong password policy
 export const authSchema = z.object({
   email: z.string()
     .trim()
     .email("Invalid email address")
     .max(255, "Email must be less than 255 characters"),
   password: z.string()
-    .min(6, "Password must be at least 6 characters")
-    .max(72, "Password must be less than 72 characters"),
+    .min(8, "Password must be at least 8 characters")
+    .max(72, "Password must be less than 72 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one digit")
+    .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|<>?,./~`]/, "Password must contain at least one symbol (!@#$%^&*()_+-=[]{};':\"\\|<>?,./~`)"),
   fullName: z.string()
     .trim()
     .min(1, "Full name is required")
@@ -83,9 +87,17 @@ export const fulfillmentUploadSchema = z.object({
     .refine(f => f.type === 'application/pdf', "Only PDF files are allowed")
 });
 
+// Profile update validation (all fields optional)
+export const profileUpdateSchema = z.object({
+  full_name: z.string().trim().max(100, "Name must be less than 100 characters").optional(),
+  university: z.string().trim().max(200, "University name must be less than 200 characters").optional(),
+  course: z.string().trim().max(100, "Course name must be less than 100 characters").optional()
+});
+
 // Types for validated data
 export type UploadFormData = z.infer<typeof uploadSchema>;
 export type AuthFormData = z.infer<typeof authSchema>;
 export type ReportFormData = z.infer<typeof reportSchema>;
 export type RequestNoteFormData = z.infer<typeof requestNoteSchema>;
 export type FulfillmentUploadFormData = z.infer<typeof fulfillmentUploadSchema>;
+export type ProfileUpdateFormData = z.infer<typeof profileUpdateSchema>;

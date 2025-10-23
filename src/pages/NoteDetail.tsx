@@ -102,6 +102,27 @@ const NoteDetail = () => {
       return;
     }
 
+    // Check for spam voting
+    const { data: isSpam, error: spamError } = await supabase.rpc("check_vote_spam", {
+      _user_id: currentUserId
+    });
+
+    if (spamError) {
+      console.error("Error checking spam:", spamError);
+    } else if (isSpam) {
+      toast.error("Voting too quickly! Please slow down to prevent spam detection.", {
+        duration: 4000,
+        position: "top-center",
+        style: {
+          background: "hsl(var(--destructive))",
+          color: "hsl(var(--destructive-foreground))",
+          fontSize: "16px",
+          padding: "16px 24px"
+        }
+      });
+      return;
+    }
+
     let upvoteDelta = 0;
     let downvoteDelta = 0;
 
@@ -117,6 +138,14 @@ const NoteDetail = () => {
         setUserVote(null);
         if (voteType === "upvote") upvoteDelta = -1;
         else downvoteDelta = -1;
+        
+        // Log vote activity for spam tracking
+        await supabase.from("vote_activity").insert({
+          user_id: currentUserId,
+          note_id: noteId!,
+          vote_type: "remove"
+        });
+        
         toast.success("Vote removed");
       }
     } else {
@@ -130,6 +159,12 @@ const NoteDetail = () => {
         });
 
       if (!error) {
+        // Log vote activity for spam tracking
+        await supabase.from("vote_activity").insert({
+          user_id: currentUserId,
+          note_id: noteId!,
+          vote_type: voteType
+        });
         if (userVote) {
           // Changing vote
           if (voteType === "upvote") {

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Award, FileText, TrendingUp, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { EditProfileDialog } from "@/components/EditProfileDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -194,8 +195,18 @@ const Dashboard = () => {
 
           {/* Profile Info */}
           <Card className="mb-8">
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Profile Information</CardTitle>
+              {profile && (
+                <EditProfileDialog
+                  currentProfile={{
+                    full_name: profile.full_name || "",
+                    university: profile.university || "",
+                    course: profile.course || ""
+                  }}
+                  onProfileUpdated={fetchUserData}
+                />
+              )}
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="grid md:grid-cols-2 gap-4">
@@ -209,11 +220,11 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">University</p>
-                  <p className="font-medium">{profile?.university}</p>
+                  <p className="font-medium">{profile?.university || "Not set"}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Course</p>
-                  <p className="font-medium">{profile?.course}</p>
+                  <p className="font-medium">{profile?.course || "Not set"}</p>
                 </div>
               </div>
             </CardContent>

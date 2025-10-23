@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { Navbar } from "@/components/Navbar";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -117,7 +119,10 @@ export default function CreateRequest() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-2xl">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8 max-w-2xl">
       <Card>
         <CardHeader>
           <CardTitle>Create Note Request</CardTitle>
@@ -232,6 +237,8 @@ export default function CreateRequest() {
           </form>
         </CardContent>
       </Card>
-    </div>
+        </div>
+      </div>
+    </ProtectedRoute>
   );
 }

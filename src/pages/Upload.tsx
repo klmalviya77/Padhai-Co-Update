@@ -79,6 +79,29 @@ const Upload = () => {
         return;
       }
 
+      // Check daily upload limit
+      const { data: uploadCount, error: countError } = await supabase.rpc("get_upload_count", {
+        _user_id: user.id
+      });
+
+      if (countError) {
+        console.error("Error checking upload count:", countError);
+      } else if (uploadCount >= 3) {
+        toast.error("Daily upload limit reached! You can upload a maximum of 3 files per day. Please try again tomorrow.", {
+          duration: 5000,
+          position: "top-center",
+          style: {
+            background: "hsl(var(--destructive))",
+            color: "hsl(var(--destructive-foreground))",
+            fontSize: "16px",
+            padding: "16px 24px",
+            textAlign: "center"
+          }
+        });
+        setLoading(false);
+        return;
+      }
+
       // Upload file to Supabase Storage
       const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
@@ -111,6 +134,9 @@ const Upload = () => {
       if (insertError) {
         throw insertError;
       }
+
+      // Increment daily upload count
+      await supabase.rpc("increment_upload_count", { _user_id: user.id });
 
       // Award Gyan Points using secure RPC function
       await supabase.rpc("award_upload_points", { _user_id: user.id });

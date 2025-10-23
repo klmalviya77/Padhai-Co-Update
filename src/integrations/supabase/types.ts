@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      daily_uploads: {
+        Row: {
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          upload_count: number
+          upload_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          upload_count?: number
+          upload_date?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          upload_count?: number
+          upload_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       fulfillment_votes: {
         Row: {
           created_at: string | null
@@ -388,6 +415,38 @@ export type Database = {
         }
         Relationships: []
       }
+      vote_activity: {
+        Row: {
+          id: string
+          note_id: string
+          user_id: string
+          vote_timestamp: string | null
+          vote_type: string
+        }
+        Insert: {
+          id?: string
+          note_id: string
+          user_id: string
+          vote_timestamp?: string | null
+          vote_type: string
+        }
+        Update: {
+          id?: string
+          note_id?: string
+          user_id?: string
+          vote_timestamp?: string | null
+          vote_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vote_activity_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: false
+            referencedRelation: "notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       votes: {
         Row: {
           created_at: string | null
@@ -462,18 +521,17 @@ export type Database = {
       }
     }
     Functions: {
-      award_upload_points: {
-        Args: { _user_id: string }
-        Returns: undefined
-      }
+      award_upload_points: { Args: { _user_id: string }; Returns: undefined }
       check_community_validation: {
         Args: { _fulfillment_id: string }
         Returns: undefined
       }
+      check_vote_spam: { Args: { _user_id: string }; Returns: boolean }
       deduct_download_points: {
         Args: { _cost: number; _user_id: string }
         Returns: boolean
       }
+      get_upload_count: { Args: { _user_id: string }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -481,6 +539,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_upload_count: { Args: { _user_id: string }; Returns: number }
       process_fulfillment_approval: {
         Args: {
           _approved: boolean

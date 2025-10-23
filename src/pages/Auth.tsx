@@ -29,13 +29,16 @@ const Auth = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password || !fullName) {
-      toast.error("Please fill in all fields");
-      return;
-    }
+    // Validate with zod schema
+    const { authSchema } = await import("@/lib/validation");
+    const validation = authSchema.safeParse({
+      email: email.trim(),
+      password,
+      fullName: fullName.trim()
+    });
 
-    if (password.length < 6) {
-      toast.error("Password must be at least 6 characters");
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
       return;
     }
 
@@ -64,9 +67,15 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       toast.error("Please fill in all fields");
+      return;
+    }
+
+    // Basic validation for login (no strict password policy on login)
+    if (email.trim().length === 0 || password.length === 0) {
+      toast.error("Email and password are required");
       return;
     }
 
