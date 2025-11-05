@@ -269,6 +269,7 @@ export type Database = {
           full_name: string | null
           gyan_points: number | null
           id: string
+          referral_code: string | null
           reputation_level:
             | Database["public"]["Enums"]["reputation_level"]
             | null
@@ -282,6 +283,7 @@ export type Database = {
           full_name?: string | null
           gyan_points?: number | null
           id: string
+          referral_code?: string | null
           reputation_level?:
             | Database["public"]["Enums"]["reputation_level"]
             | null
@@ -295,6 +297,7 @@ export type Database = {
           full_name?: string | null
           gyan_points?: number | null
           id?: string
+          referral_code?: string | null
           reputation_level?:
             | Database["public"]["Enums"]["reputation_level"]
             | null
@@ -302,6 +305,82 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      referrals: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          points_awarded: number | null
+          referral_month: string
+          referred_user_id: string
+          referrer_id: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          points_awarded?: number | null
+          referral_month?: string
+          referred_user_id: string
+          referrer_id: string
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          points_awarded?: number | null
+          referral_month?: string
+          referred_user_id?: string
+          referrer_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referred_user_id_fkey"
+            columns: ["referred_user_id"]
+            isOneToOne: false
+            referencedRelation: "profile_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referred_user_id_fkey"
+            columns: ["referred_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referred_user_id_fkey"
+            columns: ["referred_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_leaderboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profile_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "user_leaderboard"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reports: {
         Row: {
@@ -614,11 +693,14 @@ export type Database = {
         Args: { _fulfillment_id: string }
         Returns: undefined
       }
+      check_referral_limit: { Args: { _referrer_id: string }; Returns: boolean }
       check_vote_spam: { Args: { _user_id: string }; Returns: boolean }
       deduct_download_points: {
         Args: { _cost: number; _user_id: string }
         Returns: boolean
       }
+      ensure_referral_code: { Args: never; Returns: undefined }
+      generate_referral_code: { Args: never; Returns: string }
       get_fulfillment_vote_counts: {
         Args: { fulfillment_uuid: string }
         Returns: {
@@ -631,6 +713,15 @@ export type Database = {
         Returns: {
           downvotes: number
           upvotes: number
+        }[]
+      }
+      get_referral_stats: {
+        Args: { _user_id: string }
+        Returns: {
+          monthly_referrals: number
+          pending_referrals: number
+          total_points_earned: number
+          total_referrals: number
         }[]
       }
       get_upload_count: { Args: { _user_id: string }; Returns: number }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,10 +13,12 @@ import logo from "@/assets/padhai-logo.png";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [referralCode, setReferralCode] = useState(searchParams.get("ref") || "");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -44,6 +46,23 @@ const Auth = () => {
 
     setLoading(true);
 
+    // Check if referral code is valid (if provided)
+    let referrerId = null;
+    if (referralCode.trim()) {
+      const { data: referrerProfile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("referral_code", referralCode.trim().toUpperCase())
+        .single();
+
+      if (!referrerProfile) {
+        toast.error("Invalid referral code");
+        setLoading(false);
+        return;
+      }
+      referrerId = referrerProfile.id;
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -55,12 +74,33 @@ const Auth = () => {
       },
     });
 
-    setLoading(false);
-
     if (error) {
       toast.error(error.message);
+      setLoading(false);
+      return;
+    }
+
+    // Create referral record if valid code was provided
+    if (data.user && referrerId) {
+      const { error: referralError } = await supabase
+        .from("referrals")
+        .insert({
+          referrer_id: referrerId,
+          referred_user_id: data.user.id,
+          referral_month: new Date().toISOString().slice(0, 10),
+        });
+
+      if (referralError) {
+        console.error("Failed to create referral:", referralError);
+      } else {
+        toast.success("Account created with referral code!");
+      }
     } else if (data.user) {
       toast.success("Account created successfully!");
+    }
+
+    setLoading(false);
+    if (data.user) {
       navigate("/dashboard");
     }
   };
@@ -204,6 +244,20 @@ const Auth = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         disabled={loading}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="referral-code">
+                        Referral Code <span className="text-muted-foreground">(Optional)</span>
+                      </Label>
+                      <Input
+                        id="referral-code"
+                        type="text"
+                        placeholder="Enter referral code"
+                        value={referralCode}
+                        onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                        disabled={loading}
+                        maxLength={8}
                       />
                     </div>
                     <Button type="submit" className="w-full" disabled={loading}>

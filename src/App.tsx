@@ -16,6 +16,7 @@ import Terms from "./pages/Terms";
 import RequestNotes from "./pages/RequestNotes";
 import CreateRequest from "./pages/CreateRequest";
 import MyRequests from "./pages/MyRequests";
+import ReferEarn from "./pages/ReferEarn";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => (
           <Route path="/request-notes" element={<RequestNotes />} />
           <Route path="/create-request" element={<CreateRequest />} />
           <Route path="/my-requests" element={<MyRequests />} />
+          <Route path="/refer-earn" element={<ReferEarn />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
