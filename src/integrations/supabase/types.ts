@@ -75,6 +75,13 @@ export type Database = {
             foreignKeyName: "fulfillment_votes_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "profile_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fulfillment_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -138,6 +145,13 @@ export type Database = {
             foreignKeyName: "note_requests_fulfilled_by_fkey"
             columns: ["fulfilled_by"]
             isOneToOne: false
+            referencedRelation: "profile_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "note_requests_fulfilled_by_fkey"
+            columns: ["fulfilled_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -146,6 +160,13 @@ export type Database = {
             columns: ["fulfilled_by"]
             isOneToOne: false
             referencedRelation: "user_leaderboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "note_requests_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "profile_public"
             referencedColumns: ["id"]
           },
           {
@@ -217,6 +238,13 @@ export type Database = {
           upvotes?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "notes_uploader_id_fkey"
+            columns: ["uploader_id"]
+            isOneToOne: false
+            referencedRelation: "profile_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "notes_uploader_id_fkey"
             columns: ["uploader_id"]
@@ -309,6 +337,13 @@ export type Database = {
             foreignKeyName: "reports_reporter_id_fkey"
             columns: ["reporter_id"]
             isOneToOne: false
+            referencedRelation: "profile_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -376,6 +411,13 @@ export type Database = {
             columns: ["request_id"]
             isOneToOne: false
             referencedRelation: "note_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "request_fulfillments_uploader_id_fkey"
+            columns: ["uploader_id"]
+            isOneToOne: false
+            referencedRelation: "profile_public"
             referencedColumns: ["id"]
           },
           {
@@ -481,6 +523,13 @@ export type Database = {
             foreignKeyName: "votes_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "profile_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -495,6 +544,45 @@ export type Database = {
       }
     }
     Views: {
+      profile_public: {
+        Row: {
+          course: string | null
+          created_at: string | null
+          full_name: string | null
+          gyan_points: number | null
+          id: string | null
+          reputation_level:
+            | Database["public"]["Enums"]["reputation_level"]
+            | null
+          university: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          course?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          gyan_points?: number | null
+          id?: string | null
+          reputation_level?:
+            | Database["public"]["Enums"]["reputation_level"]
+            | null
+          university?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          course?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          gyan_points?: number | null
+          id?: string | null
+          reputation_level?:
+            | Database["public"]["Enums"]["reputation_level"]
+            | null
+          university?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       user_leaderboard: {
         Row: {
           gyan_points: number | null
@@ -530,6 +618,20 @@ export type Database = {
       deduct_download_points: {
         Args: { _cost: number; _user_id: string }
         Returns: boolean
+      }
+      get_fulfillment_vote_counts: {
+        Args: { fulfillment_uuid: string }
+        Returns: {
+          downvotes: number
+          upvotes: number
+        }[]
+      }
+      get_note_vote_counts: {
+        Args: { note_uuid: string }
+        Returns: {
+          downvotes: number
+          upvotes: number
+        }[]
       }
       get_upload_count: { Args: { _user_id: string }; Returns: number }
       has_role: {
