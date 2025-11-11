@@ -8,6 +8,7 @@ import { useTheme } from "next-themes";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import logo from "@/assets/padhai-logo.png";
+import logoDark from "@/assets/padhai-logo-dark.png";
 
 export const Navbar = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -54,7 +55,7 @@ export const Navbar = () => {
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <img src={logo} alt="Padhai Co." className="h-10 w-auto" />
+          <img src={theme === "dark" ? logoDark : logo} alt="Padhai Co." className="h-10 w-auto" />
         </Link>
 
         <div className="flex items-center gap-6">

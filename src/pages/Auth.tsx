@@ -9,11 +9,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Navbar } from "@/components/Navbar";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useTheme } from "next-themes";
 import logo from "@/assets/padhai-logo.png";
+import logoDark from "@/assets/padhai-logo-dark.png";
 
 const Auth = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { theme } = useTheme();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -157,7 +160,7 @@ const Auth = () => {
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-md mx-auto">
           <div className="text-center mb-8">
-            <img src={logo} alt="Padhai Co." className="h-16 w-auto mx-auto mb-4" />
+            <img src={theme === "dark" ? logoDark : logo} alt="Padhai Co." className="h-16 w-auto mx-auto mb-4" />
             <h1 className="text-3xl font-bold text-foreground">Welcome to Padhai Co.</h1>
             <p className="text-muted-foreground mt-2">Join India's largest student community</p>
           </div>
