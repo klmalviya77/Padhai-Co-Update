@@ -160,7 +160,7 @@ const Auth = () => {
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-md mx-auto">
           <div className="text-center mb-8">
-            <img src={theme === "dark" ? logoDark : logo} alt="Padhai Co." className="h-16 w-auto mx-auto mb-4" />
+            <img src={theme === "dark" ? logoDark : logo} alt="Padhai Co." className="h-16 w-64 object-contain mx-auto mb-4" />
             <h1 className="text-3xl font-bold text-foreground">Welcome to Padhai Co.</h1>
             <p className="text-muted-foreground mt-2">Join India's largest student community</p>
           </div>
