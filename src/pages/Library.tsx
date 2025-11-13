@@ -52,62 +52,71 @@ const Library = () => {
 
   const fetchSavedNotes = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      // First get the saved notes
+      const { data: savedNotesData, error: savedError } = await supabase
         .from("saved_notes")
-        .select(`
-          id,
-          note_id,
-          created_at,
-          notes (
-            id,
-            topic,
-            subject,
-            category,
-            level,
-            trust_score,
-            file_type,
-            uploader_id
-          )
-        `)
+        .select("id, note_id, created_at")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Library error:", error);
+      if (savedError) {
+        console.error("Library error:", savedError);
         toast.error("Failed to load saved notes");
         setLoading(false);
         return;
       }
 
-      if (!data || data.length === 0) {
+      if (!savedNotesData || savedNotesData.length === 0) {
         setSavedNotes([]);
         setLoading(false);
         return;
       }
 
-      // Fetch profiles separately for the uploaders
-      const uploaderIds = data
-        .map(item => item.notes?.uploader_id)
-        .filter(Boolean);
+      // Get the note IDs
+      const noteIds = savedNotesData.map(item => item.note_id);
 
+      // Fetch the notes data
+      const { data: notesData, error: notesError } = await supabase
+        .from("notes")
+        .select("id, topic, subject, category, level, trust_score, file_type, uploader_id")
+        .in("id", noteIds);
+
+      if (notesError) {
+        console.error("Notes fetch error:", notesError);
+        toast.error("Failed to load note details");
+        setLoading(false);
+        return;
+      }
+
+      // Get unique uploader IDs
+      const uploaderIds = [...new Set(notesData?.map(note => note.uploader_id) || [])];
+
+      // Fetch profiles for the uploaders
       const { data: profiles } = await supabase
         .from("profiles")
         .select("id, full_name, reputation_level")
         .in("id", uploaderIds);
 
-      // Merge profiles with notes
-      const notesWithProfiles = data.map(item => ({
-        ...item,
-        notes: item.notes ? {
-          ...item.notes,
-          profiles: profiles?.find(p => p.id === item.notes?.uploader_id) || {
-            full_name: "Unknown",
-            reputation_level: "Newbie"
-          }
-        } : null
-      }));
+      // Combine all the data
+      const combinedData = savedNotesData.map(savedNote => {
+        const noteData = notesData?.find(n => n.id === savedNote.note_id);
+        const profile = profiles?.find(p => p.id === noteData?.uploader_id);
+        
+        return {
+          id: savedNote.id,
+          note_id: savedNote.note_id,
+          created_at: savedNote.created_at,
+          notes: noteData ? {
+            ...noteData,
+            profiles: profile || {
+              full_name: "Unknown",
+              reputation_level: "Newbie"
+            }
+          } : null
+        };
+      }).filter(item => item.notes !== null); // Remove items where note was not found
 
-      setSavedNotes(notesWithProfiles as any);
+      setSavedNotes(combinedData as any);
     } catch (error) {
       console.error("Library fetch error:", error);
       toast.error("Failed to load saved notes");

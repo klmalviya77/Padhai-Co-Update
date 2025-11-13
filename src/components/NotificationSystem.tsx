@@ -31,17 +31,17 @@ export const NotificationSystem = () => {
   useEffect(() => {
     loadNotifications();
     
-    // Subscribe to new notifications
+    // Subscribe to new notifications using realtime
     const channel = supabase
-      .channel("notifications")
+      .channel("schema-db-changes")
       .on(
-        "postgres_changes",
+        "postgres_changes" as any,
         {
           event: "INSERT",
           schema: "public",
           table: "notifications",
-        },
-        (payload) => {
+        } as any,
+        (payload: any) => {
           const newNotification = payload.new as Notification;
           setNotifications((prev) => [newNotification, ...prev]);
           setUnreadCount((prev) => prev + 1);
@@ -63,7 +63,7 @@ export const NotificationSystem = () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return;
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("notifications")
       .select("*")
       .eq("user_id", session.user.id)
@@ -75,12 +75,14 @@ export const NotificationSystem = () => {
       return;
     }
 
-    setNotifications(data || []);
-    setUnreadCount(data?.filter((n) => !n.read).length || 0);
+    // Cast the data to proper type
+    const typedNotifications = (data || []) as Notification[];
+    setNotifications(typedNotifications);
+    setUnreadCount(typedNotifications.filter((n) => !n.read).length);
   };
 
   const markAsRead = async (notificationId: string) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("notifications")
       .update({ read: true })
       .eq("id", notificationId);
@@ -97,7 +99,7 @@ export const NotificationSystem = () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return;
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("notifications")
       .update({ read: true })
       .eq("user_id", session.user.id)
@@ -111,7 +113,7 @@ export const NotificationSystem = () => {
   };
 
   const deleteNotification = async (notificationId: string) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("notifications")
       .delete()
       .eq("id", notificationId);
