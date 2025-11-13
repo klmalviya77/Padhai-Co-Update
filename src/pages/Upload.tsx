@@ -114,10 +114,14 @@ const Upload = () => {
         throw uploadError;
       }
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      // Get signed URL (1 year expiry for uploaded notes)
+      const { data: signedUrlData, error: urlError } = await supabase.storage
         .from("notes")
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 31536000); // 1 year in seconds
+
+      if (urlError || !signedUrlData) {
+        throw new Error("Failed to generate file URL");
+      }
 
       // Save note to database using validated data
       const { error: insertError } = await supabase.from("notes").insert({
@@ -126,7 +130,7 @@ const Upload = () => {
         level: validation.data.level,
         subject: validation.data.subject,
         topic: validation.data.topic,
-        file_url: publicUrl,
+        file_url: signedUrlData.signedUrl,
         file_type: file.type,
         tags: validation.data.tags,
       });

@@ -103,9 +103,14 @@ export default function RequestNotes() {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
+      // Get signed URL (1 year expiry)
+      const { data: signedUrlData, error: urlError } = await supabase.storage
         .from("notes")
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 31536000);
+
+      if (urlError || !signedUrlData) {
+        throw new Error("Failed to generate file URL");
+      }
 
       // Create fulfillment record
       const { error: fulfillmentError } = await supabase
@@ -113,7 +118,7 @@ export default function RequestNotes() {
         .insert({
           request_id: selectedRequest.id,
           uploader_id: user.id,
-          file_url: publicUrl,
+          file_url: signedUrlData.signedUrl,
           file_type: 'application/pdf',
           file_size: uploadFile.size,
         });
