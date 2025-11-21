@@ -222,7 +222,7 @@ const Notes = () => {
             </div>
 
             {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-8">;
+            <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger className="w-full sm:w-[200px]">
                   <SelectValue placeholder="Select Category" />
