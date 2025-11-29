@@ -477,12 +477,8 @@ const NoteDetail = () => {
   };
 
   const calculateDownloadCost = () => {
-    if (!note) return 50;
-    const trustScore = note.trust_score || 0;
-    
-    // Base cost is 50 points, increases by 5 points for every 10 trust score points
-    const additionalCost = Math.floor(trustScore / 10) * 5;
-    return 50 + additionalCost;
+    // Fixed cost of 75 GP for all downloads
+    return 75;
   };
 
   const handleDownload = async () => {

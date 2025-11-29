@@ -346,6 +346,39 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          link: string | null
+          message: string
+          read: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          link?: string | null
+          message: string
+          read?: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          link?: string | null
+          message?: string
+          read?: boolean | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           course: string | null
@@ -354,6 +387,7 @@ export type Database = {
           full_name: string | null
           gyan_points: number | null
           id: string
+          profile_bonus_awarded: boolean | null
           referral_code: string | null
           reputation_level:
             | Database["public"]["Enums"]["reputation_level"]
@@ -368,6 +402,7 @@ export type Database = {
           full_name?: string | null
           gyan_points?: number | null
           id: string
+          profile_bonus_awarded?: boolean | null
           referral_code?: string | null
           reputation_level?:
             | Database["public"]["Enums"]["reputation_level"]
@@ -382,6 +417,7 @@ export type Database = {
           full_name?: string | null
           gyan_points?: number | null
           id?: string
+          profile_bonus_awarded?: boolean | null
           referral_code?: string | null
           reputation_level?:
             | Database["public"]["Enums"]["reputation_level"]
@@ -794,6 +830,7 @@ export type Database = {
       }
     }
     Functions: {
+      award_profile_bonus: { Args: { _user_id: string }; Returns: undefined }
       award_upload_points: { Args: { _user_id: string }; Returns: undefined }
       check_community_validation: {
         Args: { _fulfillment_id: string }

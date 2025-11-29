@@ -63,14 +63,17 @@ export default function CreateRequest() {
         .eq("id", user.id)
         .single();
 
-      if (!profile || profile.gyan_points < points) {
-        throw new Error("Insufficient points");
+      // Fixed cost: Creating a request always costs 50 GP
+      const REQUEST_COST = 50;
+      
+      if (!profile || profile.gyan_points < REQUEST_COST) {
+        throw new Error("Insufficient points. You need 50 GP to create a request.");
       }
 
-      // Deduct points from user
+      // Deduct 50 GP from user
       const { error: deductError } = await supabase.rpc("deduct_download_points", {
         _user_id: user.id,
-        _cost: points,
+        _cost: REQUEST_COST,
       });
 
       if (deductError) throw deductError;
