@@ -60,6 +60,27 @@ export const EditProfileDialog = ({ currentProfile, onProfileUpdated }: EditProf
 
       if (error) throw error;
 
+      // Check if bonus should be awarded (after profile update)
+      if (university.trim() && course.trim()) {
+        await supabase.rpc("award_profile_bonus", {
+          _user_id: session.user.id
+        });
+        
+        // Check if bonus was actually awarded
+        const { data: updatedProfile } = await supabase
+          .from("profiles")
+          .select("profile_bonus_awarded")
+          .eq("id", session.user.id)
+          .single();
+          
+        if (updatedProfile?.profile_bonus_awarded) {
+          toast.success("Profile updated! You earned 30 GP bonus for completing your profile!");
+          setOpen(false);
+          onProfileUpdated();
+          return;
+        }
+      }
+
       toast.success("Profile updated successfully!");
       setOpen(false);
       onProfileUpdated();
